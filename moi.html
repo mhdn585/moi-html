@@ -770,6 +770,11 @@
             color: var(--text-2);
         }
 
+        .btn-ghost:hover:not(:disabled) {
+            background: var(--bg);
+            border-color: var(--text-3);
+        }
+
         .btn-danger {
             background: var(--surface);
             border: 1px solid #f3c6c6;
@@ -784,14 +789,10 @@
             position: sticky;
             bottom: 0;
             display: flex;
+            flex-direction: column;
             gap: 10px;
             padding: 14px 2px 16px;
             background: linear-gradient(to top, var(--bg) 65%, transparent);
-        }
-
-        #btnCancelarEdicion {
-            flex: 0 0 auto;
-            padding-inline: 18px;
         }
 
         .spacer {
@@ -1537,8 +1538,8 @@
                         </section>
 
                         <div class="form-actions">
-                            <button type="button" class="btn btn-ghost" id="btnCancelarEdicion" hidden>Cancelar</button>
                             <button type="submit" class="btn btn-primary" id="btnGuardar"><svg class="icon" aria-hidden="true"><use href="#i-mas"></use></svg> Agregar trabajo</button>
+                            <button type="button" class="btn btn-ghost" id="btnCancelarEdicion" hidden>Cancelar</button>
                         </div>
                     </form>
                 </section>
