@@ -6,6 +6,7 @@
     <meta name="theme-color" content="#0f766e">
     <title>Pedido de Cristales · Generador XLSX</title>
     <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <style>
         /* ===== RESET & TOKENS ===== */
         *,
@@ -749,6 +750,20 @@
             background: #166534;
         }
 
+        .btn-imagen {
+            background: var(--oi);
+            color: #fff;
+            box-shadow: 0 4px 14px rgba(29, 78, 216, 0.28);
+        }
+
+        .btn-imagen:hover:not(:disabled) {
+            background: #1e40af;
+        }
+
+        #btnExport + .btn-imagen {
+            margin-top: 10px;
+        }
+
         .btn-ghost {
             background: var(--surface);
             border: 1px solid var(--border);
@@ -1102,6 +1117,60 @@
             min-height: 46px;
         }
 
+        /* ===== PREVIEW DE IMAGEN (bottom sheet) ===== */
+        .preview-nombre {
+            font-size: 12px;
+            color: var(--text-3);
+            word-break: break-all;
+            margin-bottom: 12px;
+        }
+
+        .preview-scroll {
+            max-height: 45dvh;
+            overflow: auto;
+            -webkit-overflow-scrolling: touch;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 8px;
+            margin-bottom: 16px;
+        }
+
+        .preview-scroll img {
+            display: block;
+            width: 100%;
+            min-width: 640px;
+        }
+
+        /* ===== CONTENEDOR OFFSCREEN QUE HTML2CANVAS FOTOGRAFIA ===== */
+        /* Debe estar en el DOM y con layout real (nunca display:none) */
+        .hoja-foto {
+            position: fixed;
+            left: -10000px;
+            top: 0;
+            z-index: -1;
+            background: #ffffff;
+            padding: 16px;
+            width: max-content;
+        }
+
+        .hoja-foto .hoja-titulo {
+            color: var(--text);
+            font: 700 16px/1.3 Arial, sans-serif;
+            margin-bottom: 2px;
+        }
+
+        .hoja-foto .hoja-fecha {
+            color: var(--text-2);
+            font: 400 12px/1.3 Arial, sans-serif;
+            margin-bottom: 10px;
+        }
+
+        .hoja-foto table {
+            border-collapse: collapse;
+            font-family: Arial, sans-serif;
+        }
+
         /* ===== RESPONSIVO ===== */
         @media (max-width: 340px) {
             .step-btn {
@@ -1158,6 +1227,11 @@
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
             <polyline points="7 10 12 15 17 10" />
             <line x1="12" y1="15" x2="12" y2="3" />
+        </symbol>
+        <symbol id="i-imagen" viewBox="0 0 24 24">
+            <rect width="18" height="18" x="3" y="3" rx="2" ry="2" />
+            <circle cx="9" cy="9" r="2" />
+            <path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21" />
         </symbol>
         <symbol id="i-lista" viewBox="0 0 24 24">
             <rect width="8" height="4" x="8" y="2" rx="1" ry="1" />
@@ -1506,9 +1580,10 @@
                     </div>
 
                     <button type="button" class="btn btn-export" id="btnExport" disabled><svg class="icon" aria-hidden="true"><use href="#i-descarga"></use></svg> Generar XLSX</button>
+                    <button type="button" class="btn btn-imagen" id="btnImagen" disabled><svg class="icon" aria-hidden="true"><use href="#i-imagen"></use></svg> Generar imagen (PNG)</button>
                     <div class="spacer"></div>
                     <button type="button" class="btn btn-danger" id="btnClear" disabled><svg class="icon" aria-hidden="true"><use href="#i-papelera"></use></svg> Vaciar carpeta</button>
-                    <p class="nota">La descarga requiere conexión (xlsx-js-style via CDN). Se exportan solo los trabajos de esta carpeta.</p>
+                    <p class="nota">La descarga requiere conexión (xlsx-js-style y html2canvas via CDN). Se exportan solo los trabajos de esta carpeta.</p>
                 </section>
             </div>
         </main>
@@ -1540,6 +1615,21 @@
         </div>
     </div>
 
+    <div class="sheet-wrap" id="previewWrap" aria-hidden="true">
+        <div class="sheet-back" id="previewBack"></div>
+        <div class="sheet-panel preview-panel" role="dialog" aria-modal="true" aria-labelledby="previewTitle">
+            <h2 id="previewTitle">Vista previa de la imagen</h2>
+            <p id="previewNombre" class="preview-nombre"></p>
+            <div class="preview-scroll">
+                <img id="previewImg" alt="Hoja de pedidos generada como imagen">
+            </div>
+            <div class="sheet-actions">
+                <button type="button" class="btn btn-ghost" id="previewCancelar">Cancelar</button>
+                <button type="button" class="btn btn-export" id="previewGuardar"><svg class="icon" aria-hidden="true"><use href="#i-descarga"></use></svg> Guardar PNG</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         (function () {
             'use strict';
@@ -1553,7 +1643,10 @@
                 filtro: '',          // búsqueda en la lista de carpetas
                 renombrando: null,   // id de la carpeta en renombrado inline
                 editando: null,      // índice del trabajo en edición (dentro de la carpeta activa)
-                alConfirmar: null
+                alConfirmar: null,
+                lienzoPng: null,     // canvas pendiente de guardar en el preview de imagen
+                nombrePng: '',       // nombre de archivo del PNG en el preview
+                generandoImagen: false
             };
 
             /* ============================================================
@@ -1644,6 +1737,7 @@
                 scrollArea: $('scrollArea'),
                 btnClear: $('btnClear'),
                 btnExport: $('btnExport'),
+                btnImagen: $('btnImagen'),
                 resumenCarpeta: $('resumenCarpeta'),
                 resumenCantidad: $('resumenCantidad'),
                 resumenFilas: $('resumenFilas'),
@@ -1653,7 +1747,13 @@
                 sheetTitle: $('sheetTitle'),
                 sheetMsg: $('sheetMsg'),
                 sheetCancel: $('sheetCancel'),
-                sheetConfirm: $('sheetConfirm')
+                sheetConfirm: $('sheetConfirm'),
+                previewWrap: $('previewWrap'),
+                previewBack: $('previewBack'),
+                previewNombre: $('previewNombre'),
+                previewImg: $('previewImg'),
+                previewCancelar: $('previewCancelar'),
+                previewGuardar: $('previewGuardar')
             };
 
             const vistas = {
@@ -2270,8 +2370,9 @@
                 }).join('');
             }
 
-            function nombreArchivoExport(carpeta) {
-                return `Pedido_${utils.sanitizarNombreArchivo(carpeta.nombre)}_${utils.fechaParaArchivo()}.xlsx`;
+            // Un solo helper para XLSX y PNG: cambia solo la extensión (mismo base Pedido_<carpeta>_<fecha>)
+            function nombreArchivoExport(carpeta, ext = 'xlsx') {
+                return `Pedido_${utils.sanitizarNombreArchivo(carpeta.nombre)}_${utils.fechaParaArchivo()}.${ext}`;
             }
 
             function renderizarResumen() {
@@ -2285,6 +2386,7 @@
                     `${filas} ${filas === 1 ? 'fila' : 'filas'}`;
                 dom.resumenArchivo.textContent = carpeta ? nombreArchivoExport(carpeta) : '—';
                 dom.btnExport.disabled = trabajos.length === 0;
+                dom.btnImagen.disabled = trabajos.length === 0 || state.generandoImagen;
                 dom.btnClear.disabled = trabajos.length === 0;
             }
 
@@ -2515,11 +2617,18 @@
             }
 
             /* ============================================================
-             * 14. EXPORTAR XLSX (solo la carpeta activa)
+             * 14. EXPORTAR (XLSX E IMAGEN PNG, solo la carpeta activa)
              * ============================================================ */
             const CABECERAS = ['OT', 'Cliente', 'Ojo', 'Esf', 'Cil', 'Eje', 'Add', 'DIP', 'Altura', 'Cristal', 'Tratamiento', 'Acabado'];
             // Columnas con datos del trabajo (se fusionan OD/OI): OT, Cliente, DIP, Altura, Cristal, Tratamiento, Acabado
             const COLUMNAS_MERGED = [0, 1, 7, 8, 9, 10, 11];
+
+            // Única fuente de anchos: alimenta ws['!cols'] del XLSX y el <colgroup> de la imagen
+            const ANCHOS_COL = [
+                { wch: 10 }, { wch: 24 }, { wch: 6 },
+                { wch: 9 }, { wch: 9 }, { wch: 7 }, { wch: 9 },
+                { wch: 7 }, { wch: 8 }, { wch: 12 }, { wch: 26 }, { wch: 11 }
+            ];
 
             function filaOjoExport(ojo) {
                 const v = valoresFormateados(ojo);
@@ -2626,11 +2735,7 @@
                     const wb = XLSX.utils.book_new();
                     const ws = XLSX.utils.aoa_to_sheet(aoa);
                     ws['!merges'] = merges;
-                    ws['!cols'] = [
-                        { wch: 10 }, { wch: 24 }, { wch: 6 },
-                        { wch: 9 }, { wch: 9 }, { wch: 7 }, { wch: 9 },
-                        { wch: 7 }, { wch: 8 }, { wch: 12 }, { wch: 26 }, { wch: 11 }
-                    ];
+                    ws['!cols'] = ANCHOS_COL.map((c) => ({ wch: c.wch }));
                     ws['!rows'] = construirFilas(aoa.length);
                     aplicarEstilos(ws);
 
@@ -2641,6 +2746,170 @@
                 } catch (error) {
                     console.error('Error al exportar:', error);
                     utils.mostrarToast('Error al generar el archivo', 'error');
+                }
+            }
+
+            // ---- Imagen PNG de la hoja (html2canvas sobre una tabla HTML gemela del XLSX) ----
+
+            // ARGB 'FFBFE3DE' -> CSS '#BFE3DE' (los colores salen siempre de COLORES_XLSX)
+            const hexCss = (argb) => '#' + argb.slice(2);
+
+            // Aproximación Excel: 1 wch ≈ 7px + padding de celda
+            const anchoPx = (wch) => Math.round(wch * 7 + 5);
+
+            function estiloCeldaHtml(c, esCabecera, esFilaOi) {
+                let relleno;
+                if (esCabecera) {
+                    relleno = COLORES_XLSX.cabecera;
+                } else if (c >= 3 && c <= 6) {
+                    relleno = esFilaOi ? COLORES_XLSX.oi : COLORES_XLSX.od;
+                } else if (c >= 9) {
+                    relleno = COLORES_XLSX.opciones;
+                } else {
+                    relleno = COLORES_XLSX.trabajo;
+                }
+                const alineacion = esCabecera || !COLUMNAS_IZQ.has(c) ? 'center' : 'left';
+                return [
+                    `background:${hexCss(relleno)}`,
+                    `color:${hexCss(COLORES_XLSX.texto)}`,
+                    `border:1px solid ${hexCss(COLORES_XLSX.borde)}`,
+                    'padding:3px 5px',
+                    'font-size:11px',
+                    esCabecera ? 'font-weight:700' : 'font-weight:400',
+                    `text-align:${alineacion}`,
+                    'vertical-align:middle',
+                    'white-space:nowrap'
+                ].join(';');
+            }
+
+            // Misma matriz (aoa + merges) que va al XLSX, traducida a <table> con rowspan
+            // Los merges del contrato son solo verticales (OD/OI); los horizontales no existen
+            function construirVistaHoja(aoa, merges, carpeta) {
+                const inicio = new Map();
+                const cubierta = new Set();
+                merges.forEach((m) => {
+                    inicio.set(`${m.s.r},${m.s.c}`, m.e.r - m.s.r + 1);
+                    for (let r = m.s.r; r <= m.e.r; r++) {
+                        for (let c = m.s.c; c <= m.e.c; c++) {
+                            if (r !== m.s.r || c !== m.s.c) cubierta.add(`${r},${c}`);
+                        }
+                    }
+                });
+
+                const colgroup = ANCHOS_COL.map((c) => `<col style="width:${anchoPx(c.wch)}px">`).join('');
+
+                let cuerpo = '';
+                aoa.forEach((fila, r) => {
+                    if (fila.length === 0) {
+                        cuerpo += `<tr style="height:6px"><td colspan="${ANCHOS_COL.length}" style="border:0;padding:0;background:#ffffff"></td></tr>`;
+                        return;
+                    }
+                    const esCabecera = r === 0;
+                    const esFilaOi = !esCabecera && r % 3 === 2;
+                    let celdas = '';
+                    for (let c = 0; c < ANCHOS_COL.length; c++) {
+                        const clave = `${r},${c}`;
+                        if (cubierta.has(clave)) continue;
+                        const etiqueta = esCabecera ? 'th' : 'td';
+                        const valor = fila[c] === undefined || fila[c] === null ? '' : fila[c];
+                        const span = inicio.get(clave);
+                        const rowspan = span ? ` rowspan="${span}"` : '';
+                        celdas += `<${etiqueta}${rowspan} style="${estiloCeldaHtml(c, esCabecera, esFilaOi)}">${utils.esc(valor)}</${etiqueta}>`;
+                    }
+                    cuerpo += `<tr>${celdas}</tr>`;
+                });
+
+                const cont = document.createElement('div');
+                cont.className = 'hoja-foto';
+                cont.innerHTML = `
+                    <p class="hoja-titulo">${utils.esc(carpeta.nombre)}</p>
+                    <p class="hoja-fecha">${utils.esc(utils.fechaVisible(utils.fechaHoyISO()))}</p>
+                    <table><colgroup>${colgroup}</colgroup><tbody>${cuerpo}</tbody></table>
+                `;
+                return cont;
+            }
+
+            async function exportarImagen() {
+                if (state.generandoImagen) return;
+                const carpeta = carpetaActivaObj();
+                const trabajos = trabajosActivos();
+                if (!carpeta || trabajos.length === 0) {
+                    utils.mostrarToast('No hay datos para exportar', 'error');
+                    return;
+                }
+                if (typeof window.html2canvas !== 'function') {
+                    utils.mostrarToast('La imagen requiere conexión (html2canvas vía CDN)', 'error');
+                    return;
+                }
+
+                state.generandoImagen = true;
+                dom.btnImagen.disabled = true;
+                let cont = null;
+                try {
+                    const { aoa, merges } = construirHojas(trabajos);
+                    cont = construirVistaHoja(aoa, merges, carpeta);
+                    document.body.appendChild(cont);
+                    const lienzo = await window.html2canvas(cont, { scale: 2, backgroundColor: '#ffffff' });
+                    state.nombrePng = nombreArchivoExport(carpeta, 'png');
+                    abrirVistaPrevia(lienzo);
+                } catch (error) {
+                    console.error('Error al generar la imagen:', error);
+                    utils.mostrarToast('Error al generar la imagen', 'error');
+                } finally {
+                    if (cont) cont.remove();
+                    state.generandoImagen = false;
+                    dom.btnImagen.disabled = trabajosActivos().length === 0;
+                }
+            }
+
+            function abrirVistaPrevia(lienzo) {
+                state.lienzoPng = lienzo;
+                dom.previewImg.src = lienzo.toDataURL('image/png');
+                dom.previewNombre.textContent = state.nombrePng;
+                dom.previewWrap.classList.add('open');
+                dom.previewWrap.setAttribute('aria-hidden', 'false');
+                dom.previewGuardar.focus();
+            }
+
+            function cerrarVistaPrevia() {
+                dom.previewWrap.classList.remove('open');
+                dom.previewWrap.setAttribute('aria-hidden', 'true');
+                state.lienzoPng = null;
+                state.nombrePng = '';
+                dom.previewImg.removeAttribute('src');
+            }
+
+            function descargarBlob(blob, nombre) {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = nombre;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                setTimeout(() => URL.revokeObjectURL(url), 1000);
+            }
+
+            function guardarPNG() {
+                const lienzo = state.lienzoPng;
+                const nombre = state.nombrePng;
+                if (!lienzo || !nombre) {
+                    cerrarVistaPrevia();
+                    return;
+                }
+                try {
+                    lienzo.toBlob((blob) => {
+                        if (!blob) {
+                            utils.mostrarToast('Error al generar la imagen', 'error');
+                            return;
+                        }
+                        descargarBlob(blob, nombre);
+                        utils.mostrarToast('PNG generado correctamente', 'success');
+                        cerrarVistaPrevia();
+                    }, 'image/png');
+                } catch (error) {
+                    console.error('Error al guardar el PNG:', error);
+                    utils.mostrarToast('Error al guardar la imagen', 'error');
                 }
             }
 
@@ -2757,6 +3026,7 @@
                 });
 
                 dom.btnExport.addEventListener('click', exportarXLSX);
+                dom.btnImagen.addEventListener('click', exportarImagen);
                 dom.btnClear.addEventListener('click', solicitarLimpiarTodo);
 
                 // ---- Bottom sheet ----
@@ -2767,8 +3037,17 @@
                     cerrarConfirmacion();
                     if (cb) cb();
                 });
+
+                // ---- Preview de imagen ----
+                dom.previewBack.addEventListener('click', cerrarVistaPrevia);
+                dom.previewCancelar.addEventListener('click', cerrarVistaPrevia);
+                dom.previewGuardar.addEventListener('click', guardarPNG);
+
                 document.addEventListener('keydown', (e) => {
-                    if (e.key === 'Escape' && dom.sheetWrap.classList.contains('open')) {
+                    if (e.key !== 'Escape') return;
+                    if (dom.previewWrap.classList.contains('open')) {
+                        cerrarVistaPrevia();
+                    } else if (dom.sheetWrap.classList.contains('open')) {
                         cerrarConfirmacion();
                     }
                 });
