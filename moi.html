@@ -415,6 +415,38 @@
             color: var(--text-3);
         }
 
+        textarea {
+            width: 100%;
+            font-size: 16px;
+            font-family: inherit;
+            color: var(--text);
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 11px 12px;
+            min-height: 46px;
+            resize: vertical;
+            transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: var(--surface);
+            box-shadow: 0 0 0 3px var(--ring);
+        }
+
+        textarea::placeholder {
+            color: var(--text-3);
+        }
+
+        .nota-contador {
+            margin-top: 5px;
+            font-size: 11px;
+            color: var(--text-3);
+            text-align: right;
+        }
+
         .grid-2 {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -684,6 +716,7 @@
         }
 
         .field.invalid input,
+        .field.invalid textarea,
         .field.invalid .opt-grid,
         .field.invalid .buscar-wrap {
             outline: 1px solid var(--danger);
@@ -822,14 +855,13 @@
 
         .rec-ot {
             display: inline-block;
-            font-size: 10.5px;
+            font-size: 13px;
             font-weight: 800;
-            letter-spacing: 0.4px;
+            letter-spacing: 0.2px;
             color: var(--primary-strong);
             background: var(--primary-soft);
             border-radius: 999px;
-            padding: 3px 9px;
-            margin-bottom: 4px;
+            padding: 4px 11px;
         }
 
         .rec-editando {
@@ -843,13 +875,6 @@
             border-radius: 999px;
             padding: 2px 8px;
             margin-left: 6px;
-        }
-
-        .rec-nombre {
-            font-size: 15px;
-            font-weight: 800;
-            letter-spacing: -0.1px;
-            overflow-wrap: break-word;
         }
 
         .rec-actions {
@@ -918,11 +943,18 @@
             background: var(--oi-soft);
         }
 
-        .rec-medidas {
+        .rec-add {
             margin-top: 10px;
             font-size: 12.5px;
             color: var(--text-3);
             font-variant-numeric: tabular-nums;
+        }
+
+        .rec-nota {
+            margin-top: 8px;
+            font-size: 12.5px;
+            color: var(--text-2);
+            overflow-wrap: anywhere;
         }
 
         .rec-chips {
@@ -994,8 +1026,12 @@
             font-size: 14px;
         }
 
-        .info-row:last-child {
+        .info-row:last-of-type {
             border-bottom: none;
+        }
+
+        .btn-fecha {
+            margin-top: 12px;
         }
 
         .info-row .k {
@@ -1143,6 +1179,70 @@
             min-width: 640px;
         }
 
+        /* ===== PANTALLA DE CARGA (generación de archivos) ===== */
+        .carga-wrap {
+            position: fixed;
+            inset: 0;
+            z-index: 90;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(11, 23, 32, 0.55);
+            backdrop-filter: blur(3px);
+            -webkit-backdrop-filter: blur(3px);
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.2s ease, visibility 0.2s ease;
+        }
+
+        .carga-wrap.open {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .carga-panel {
+            background: var(--surface);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            padding: 28px 34px;
+            text-align: center;
+        }
+
+        .carga-spinner {
+            width: 46px;
+            height: 46px;
+            margin: 0 auto 14px;
+            border-radius: 50%;
+            border: 5px solid var(--primary-soft);
+            border-top-color: var(--primary);
+            animation: carga-giro 0.8s linear infinite;
+        }
+
+        @keyframes carga-giro {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .carga-spinner {
+                animation-duration: 1.6s;
+            }
+        }
+
+        .carga-panel p {
+            font-size: 15px;
+            font-weight: 800;
+            color: var(--text);
+        }
+
+        .carga-panel small {
+            display: block;
+            font-size: 12.5px;
+            color: var(--text-3);
+            margin-top: 4px;
+        }
+
         /* ===== CONTENEDOR OFFSCREEN QUE HTML2CANVAS FOTOGRAFIA ===== */
         /* Debe estar en el DOM y con layout real (nunca display:none) */
         .hoja-foto {
@@ -1234,6 +1334,12 @@
             <circle cx="9" cy="9" r="2" />
             <path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21" />
         </symbol>
+        <symbol id="i-calendario" viewBox="0 0 24 24">
+            <rect width="18" height="18" x="3" y="4" rx="2" ry="2" />
+            <line x1="16" y1="2" x2="16" y2="6" />
+            <line x1="8" y1="2" x2="8" y2="6" />
+            <line x1="3" y1="10" x2="21" y2="10" />
+        </symbol>
         <symbol id="i-lista" viewBox="0 0 24 24">
             <rect width="8" height="4" x="8" y="2" rx="1" ry="1" />
             <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
@@ -1246,22 +1352,18 @@
             <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" />
             <circle cx="12" cy="12" r="3" />
         </symbol>
-        <symbol id="i-regla" viewBox="0 0 24 24">
-            <path d="M21.3 8.7 15.3 2.7a2 2 0 0 0-2.8 0l-9.8 9.8a2 2 0 0 0 0 2.8l6 6a2 2 0 0 0 2.8 0l9.8-9.8a2 2 0 0 0 0-2.8Z" />
-            <path d="m7.5 10.5 2 2" />
-            <path d="m10.5 7.5 2 2" />
-            <path d="m13.5 4.5 2 2" />
-            <path d="m4.5 13.5 2 2" />
-        </symbol>
         <symbol id="i-lente" viewBox="0 0 24 24">
             <circle cx="12" cy="12" r="9" />
             <circle cx="12" cy="12" r="3.5" />
         </symbol>
+        <symbol id="i-nota" viewBox="0 0 24 24">
+            <path d="M15.5 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8.5Z" />
+            <path d="M15 3v6h6" />
+            <path d="M8 13h8" />
+            <path d="M8 17h5" />
+        </symbol>
         <symbol id="i-brillo" viewBox="0 0 24 24">
             <path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z" />
-        </symbol>
-        <symbol id="i-herramienta" viewBox="0 0 24 24">
-            <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
         </symbol>
         <symbol id="i-guardar" viewBox="0 0 24 24">
             <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
@@ -1353,7 +1455,7 @@
                 <!-- ===== VISTA: NUEVO TRABAJO ===== -->
                 <section class="view" id="viewTrabajo" role="tabpanel" aria-labelledby="tabTrabajo">
                     <div class="edit-banner" id="editBanner" hidden>
-                        <span><svg class="icon" aria-hidden="true"><use href="#i-lapiz"></use></svg> Editando: <strong id="editCliente"></strong></span>
+                        <span><svg class="icon" aria-hidden="true"><use href="#i-lapiz"></use></svg> Editando: <strong id="editOt"></strong></span>
                         <button type="button" class="banner-close" id="btnCancelarBanner" aria-label="Salir de la edición"><svg class="icon" aria-hidden="true"><use href="#i-x"></use></svg></button>
                     </div>
 
@@ -1366,14 +1468,9 @@
                                 <h2>Datos del trabajo</h2>
                             </div>
                             <div class="field">
-                                <label for="cliente">Cliente</label>
-                                <input type="text" id="cliente" placeholder="Nombre y apellido" autocomplete="off" enterkeyhint="next">
-                                <p class="error" role="alert">Ingresa el nombre del cliente</p>
-                            </div>
-                            <div class="field">
                                 <label for="ot">N° de orden (OT)</label>
                                 <input type="text" id="ot" placeholder="Ej: 1024" autocomplete="off" enterkeyhint="done">
-                                <p class="error" role="alert">Ingresa el número de orden</p>
+                                <p class="error" role="alert">Ingresa la orden de trabajo</p>
                             </div>
                         </section>
 
@@ -1409,12 +1506,13 @@
                                     </div>
                                 </div>
                                 <div class="field">
-                                    <label for="od_add">Adición</label>
+                                    <label for="od_add">Adición (ambos ojos)</label>
                                     <div class="stepper">
-                                        <button type="button" class="step-btn" data-target="od_add" data-delta="-0.25" aria-label="Disminuir adición OD"><svg class="icon" aria-hidden="true"><use href="#i-menos"></use></svg></button>
+                                        <button type="button" class="step-btn" data-target="od_add" data-delta="-0.25" aria-label="Disminuir adición"><svg class="icon" aria-hidden="true"><use href="#i-menos"></use></svg></button>
                                         <input type="text" id="od_add" placeholder="+2.25" inputmode="decimal" autocomplete="off">
-                                        <button type="button" class="step-btn" data-target="od_add" data-delta="0.25" aria-label="Aumentar adición OD"><svg class="icon" aria-hidden="true"><use href="#i-mas"></use></svg></button>
+                                        <button type="button" class="step-btn" data-target="od_add" data-delta="0.25" aria-label="Aumentar adición"><svg class="icon" aria-hidden="true"><use href="#i-mas"></use></svg></button>
                                     </div>
+                                    <p class="error" role="alert">Adición válida: 0 a 5</p>
                                 </div>
                             </div>
                         </section>
@@ -1450,46 +1548,10 @@
                                         <button type="button" class="step-btn" data-target="oi_eje" data-delta="5" aria-label="Aumentar eje OI"><svg class="icon" aria-hidden="true"><use href="#i-mas"></use></svg></button>
                                     </div>
                                 </div>
-                                <div class="field">
-                                    <label for="oi_add">Adición</label>
-                                    <div class="stepper">
-                                        <button type="button" class="step-btn" data-target="oi_add" data-delta="-0.25" aria-label="Disminuir adición OI"><svg class="icon" aria-hidden="true"><use href="#i-menos"></use></svg></button>
-                                        <input type="text" id="oi_add" placeholder="+2.25" inputmode="decimal" autocomplete="off">
-                                        <button type="button" class="step-btn" data-target="oi_add" data-delta="0.25" aria-label="Aumentar adición OI"><svg class="icon" aria-hidden="true"><use href="#i-mas"></use></svg></button>
-                                    </div>
-                                </div>
                             </div>
                         </section>
 
-                        <!-- 4. Medidas -->
-                        <section class="card" id="sMedidas" hidden>
-                            <div class="card-head">
-                                <span class="dot" aria-hidden="true"></span>
-                                <h2><svg class="icon" aria-hidden="true"><use href="#i-regla"></use></svg> Medidas</h2>
-                            </div>
-                            <div class="grid-2">
-                                <div class="field">
-                                    <label for="dip">Distancia pupilar</label>
-                                    <div class="stepper">
-                                        <button type="button" class="step-btn" data-target="dip" data-delta="-0.5" aria-label="Disminuir distancia pupilar"><svg class="icon" aria-hidden="true"><use href="#i-menos"></use></svg></button>
-                                        <input type="text" id="dip" placeholder="mm" inputmode="decimal" autocomplete="off">
-                                        <button type="button" class="step-btn" data-target="dip" data-delta="0.5" aria-label="Aumentar distancia pupilar"><svg class="icon" aria-hidden="true"><use href="#i-mas"></use></svg></button>
-                                    </div>
-                                    <p class="error" role="alert">Ingresa la distancia pupilar en mm</p>
-                                </div>
-                                <div class="field">
-                                    <label for="altura">Altura (opcional)</label>
-                                    <div class="stepper">
-                                        <button type="button" class="step-btn" data-target="altura" data-delta="-0.5" aria-label="Disminuir altura"><svg class="icon" aria-hidden="true"><use href="#i-menos"></use></svg></button>
-                                        <input type="text" id="altura" placeholder="mm" inputmode="decimal" autocomplete="off">
-                                        <button type="button" class="step-btn" data-target="altura" data-delta="0.5" aria-label="Aumentar altura"><svg class="icon" aria-hidden="true"><use href="#i-mas"></use></svg></button>
-                                    </div>
-                                    <p class="error" role="alert">Ingresa un número válido</p>
-                                </div>
-                            </div>
-                        </section>
-
-                        <!-- 5. Tipo de cristal -->
+                        <!-- 4. Tipo de cristal -->
                         <section class="card" id="sCristal" hidden>
                             <div class="card-head">
                                 <span class="dot" aria-hidden="true"></span>
@@ -1505,7 +1567,7 @@
                             </div>
                         </section>
 
-                        <!-- 6. Tratamiento -->
+                        <!-- 5. Tratamiento -->
                         <section class="card" id="sTratamiento" hidden>
                             <div class="card-head">
                                 <span class="dot" aria-hidden="true"></span>
@@ -1522,18 +1584,16 @@
                             </div>
                         </section>
 
-                        <!-- 7. Acabado -->
-                        <section class="card" id="sAcabado" hidden>
+                        <!-- 6. Nota del trabajo (opcional) -->
+                        <section class="card" id="sNota" hidden>
                             <div class="card-head">
                                 <span class="dot" aria-hidden="true"></span>
-                                <h2><svg class="icon" aria-hidden="true"><use href="#i-herramienta"></use></svg> Cristal terminado o tallado</h2>
+                                <h2><svg class="icon" aria-hidden="true"><use href="#i-nota"></use></svg> Nota del trabajo</h2>
                             </div>
-                            <div class="field" id="grupoAcabado" data-valor="">
-                                <div class="opt-grid">
-                                    <button type="button" class="opt-btn" data-opcion="terminado" aria-pressed="false">Terminado</button>
-                                    <button type="button" class="opt-btn" data-opcion="tallado" aria-pressed="false">Tallado</button>
-                                </div>
-                                <p class="error" role="alert">Selecciona terminado o tallado</p>
+                            <div class="field">
+                                <label for="nota">Información adicional (opcional)</label>
+                                <textarea id="nota" rows="2" maxlength="140" placeholder="Ej: entregar el viernes, armazón del cliente..." autocomplete="off"></textarea>
+                                <p class="nota-contador" id="notaContador">140 caracteres disponibles</p>
                             </div>
                         </section>
 
@@ -1571,6 +1631,14 @@
                             <span class="v" id="resumenCantidad">0 trabajos</span>
                         </div>
                         <div class="info-row">
+                            <span class="k">Versión</span>
+                            <span class="v" id="resumenVersion">v1</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="k">Fecha del pedido</span>
+                            <span class="v" id="resumenFecha">—</span>
+                        </div>
+                        <div class="info-row">
                             <span class="k">Filas en Excel</span>
                             <span class="v" id="resumenFilas">0 filas</span>
                         </div>
@@ -1578,6 +1646,7 @@
                             <span class="k">Archivo</span>
                             <span class="v" id="resumenArchivo">—</span>
                         </div>
+                        <button type="button" class="btn btn-ghost btn-sm btn-fecha" id="btnFecha"><svg class="icon" aria-hidden="true"><use href="#i-calendario"></use></svg> Cambiar fecha</button>
                     </div>
 
                     <button type="button" class="btn btn-export" id="btnExport" disabled><svg class="icon" aria-hidden="true"><use href="#i-descarga"></use></svg> Generar XLSX</button>
@@ -1603,6 +1672,14 @@
     </div>
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <div class="carga-wrap" id="pantallaCarga" aria-hidden="true">
+        <div class="carga-panel" role="status" aria-live="polite">
+            <div class="carga-spinner" aria-hidden="true"></div>
+            <p id="cargaTexto">Generando archivo...</p>
+            <small>No cierres la aplicación.</small>
+        </div>
+    </div>
 
     <div class="sheet-wrap" id="sheetWrap" aria-hidden="true">
         <div class="sheet-back" id="sheetBack"></div>
@@ -1631,6 +1708,29 @@
         </div>
     </div>
 
+    <div class="sheet-wrap" id="hojaFecha" aria-hidden="true">
+        <div class="sheet-back" id="hojaFechaBack"></div>
+        <div class="sheet-panel" role="dialog" aria-modal="true" aria-labelledby="hojaFechaTitulo">
+            <h2 id="hojaFechaTitulo">Fecha del pedido</h2>
+            <p>Exporta con la fecha de hoy o asigna una fecha personalizada a este pedido.</p>
+            <div class="field" id="grupoFecha" data-valor="hoy">
+                <div class="opt-grid">
+                    <button type="button" class="opt-btn" data-opcion="hoy" aria-pressed="false">Fecha de hoy</button>
+                    <button type="button" class="opt-btn" data-opcion="custom" aria-pressed="false">Fecha personalizada</button>
+                </div>
+            </div>
+            <div class="field" id="fieldInputFecha" hidden>
+                <label for="inputFecha">Fecha personalizada</label>
+                <input type="date" id="inputFecha">
+                <p class="error" role="alert">Selecciona una fecha válida</p>
+            </div>
+            <div class="sheet-actions">
+                <button type="button" class="btn btn-ghost" id="hojaFechaCancelar">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="hojaFechaGuardar"><svg class="icon" aria-hidden="true"><use href="#i-guardar"></use></svg> Usar fecha</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         (function () {
             'use strict';
@@ -1639,7 +1739,7 @@
              * 1. ESTADO
              * ============================================================ */
             const state = {
-                carpetas: [],        // [{ id, nombre, creada, trabajos: [...] }]
+                carpetas: [],        // [{ id, nombre, creada, fecha, version, trabajos: [...] }]
                 carpetaActiva: null, // id de la carpeta abierta
                 filtro: '',          // búsqueda en la lista de carpetas
                 renombrando: null,   // id de la carpeta en renombrado inline
@@ -1647,15 +1747,24 @@
                 alConfirmar: null,
                 lienzoPng: null,     // canvas pendiente de guardar en el preview de imagen
                 nombrePng: '',       // nombre de archivo del PNG en el preview
-                generandoImagen: false
+                generandoImagen: false,
+                bloqueoHasta: 0,     // epoch ms: botones de generar bloqueados tras un clic
+                timerCarga: null     // timeout pendiente de desbloqueo/ocultado de la carga
             };
 
             /* ============================================================
              * 2. CONFIGURACIÓN
              * ============================================================ */
             const STORAGE_KEY = 'pedidoCristales.v1';
+            // Copias de seguridad por pedido: { [idCarpeta]: [{ v, fecha, nombre, trabajos }] }
+            const HISTORIAL_KEY = 'pedidoCristales.historial.v1';
+            const MAX_COPIAS = 25;        // copias conservadas por pedido (las más recientes)
+            const BLOQUEO_MS = 10000;     // bloqueo anti-doble-clic al presionar Generar
+            const CARGA_MIN_MS = 800;     // duración mínima visible de la pantalla de carga
+            const NOTA_MAX = 140;         // longitud máxima de la nota del trabajo (textarea maxlength)
 
-            // Única fuente de verdad de los rangos de fórmula (DIP y altura son libres)
+            // Única fuente de verdad de los rangos de fórmula
+            // od_add es la adición compartida por ambos ojos (única fuente)
             const RANGOS = {
                 od_esf: { min: -30, max: 30 },
                 od_cil: { min: -15, max: 15 },
@@ -1663,12 +1772,11 @@
                 od_add: { min: 0, max: 5 },
                 oi_esf: { min: -30, max: 30 },
                 oi_cil: { min: -15, max: 15 },
-                oi_eje: { min: 0, max: 180 },
-                oi_add: { min: 0, max: 5 }
+                oi_eje: { min: 0, max: 180 }
             };
 
-            // Campos de fórmula que muestran signo explícito (el eje es grado, no lo lleva)
-            const CAMPOS_SIGNO = ['od_esf', 'od_cil', 'od_add', 'oi_esf', 'oi_cil', 'oi_add'];
+            // Campos que muestran signo explícito (el eje es grado, no lo lleva)
+            const CAMPOS_SIGNO = ['od_esf', 'od_cil', 'od_add', 'oi_esf', 'oi_cil'];
 
             const CRISTALES = [
                 { valor: 'monofocal', texto: 'Monofocal' },
@@ -1681,11 +1789,6 @@
                 { valor: 'antireflejo', texto: 'Antireflejo' },
                 { valor: 'filtro-azul', texto: 'Filtro azul' },
                 { valor: 'filtro-azul-foto', texto: 'Filtro azul + Fotocromático' }
-            ];
-
-            const ACABADOS = [
-                { valor: 'terminado', texto: 'Terminado' },
-                { valor: 'tallado', texto: 'Tallado' }
             ];
 
             /* ============================================================
@@ -1710,7 +1813,6 @@
                 emptyCarpetas: $('emptyCarpetas'),
                 sinResultados: $('sinResultados'),
                 formulario: $('formTrabajo'),
-                cliente: $('cliente'),
                 ot: $('ot'),
                 odEsf: $('od_esf'),
                 odCil: $('od_cil'),
@@ -1719,17 +1821,15 @@
                 oiEsf: $('oi_esf'),
                 oiCil: $('oi_cil'),
                 oiEje: $('oi_eje'),
-                oiAdd: $('oi_add'),
-                dip: $('dip'),
-                altura: $('altura'),
                 grupoCristal: $('grupoCristal'),
                 grupoTratamiento: $('grupoTratamiento'),
-                grupoAcabado: $('grupoAcabado'),
+                nota: $('nota'),
+                notaContador: $('notaContador'),
                 btnGuardar: $('btnGuardar'),
                 btnCancelarEdicion: $('btnCancelarEdicion'),
                 btnCancelarBanner: $('btnCancelarBanner'),
                 editBanner: $('editBanner'),
-                editCliente: $('editCliente'),
+                editOt: $('editOt'),
                 listado: $('listado'),
                 emptyMsg: $('emptyMsg'),
                 btnEmptyNueva: $('btnEmptyNueva'),
@@ -1741,8 +1841,19 @@
                 btnImagen: $('btnImagen'),
                 resumenCarpeta: $('resumenCarpeta'),
                 resumenCantidad: $('resumenCantidad'),
+                resumenVersion: $('resumenVersion'),
+                resumenFecha: $('resumenFecha'),
                 resumenFilas: $('resumenFilas'),
                 resumenArchivo: $('resumenArchivo'),
+                btnFecha: $('btnFecha'),
+                hojaFecha: $('hojaFecha'),
+                hojaFechaBack: $('hojaFechaBack'),
+                grupoFecha: $('grupoFecha'),
+                fieldInputFecha: $('fieldInputFecha'),
+                inputFecha: $('inputFecha'),
+                hojaFechaCancelar: $('hojaFechaCancelar'),
+                hojaFechaGuardar: $('hojaFechaGuardar'),
+                pantallaCarga: $('pantallaCarga'),
                 sheetWrap: $('sheetWrap'),
                 sheetBack: $('sheetBack'),
                 sheetTitle: $('sheetTitle'),
@@ -1763,7 +1874,7 @@
                 exportar: { tab: $('tabExportar'), panel: $('viewExportar') }
             };
 
-            // Campos con stepper: los ojos conservan RANGOS; DIP/altura libres (±Infinity)
+            // Campos con stepper: ojos + adición compartida (od_add); rangos viven en RANGOS
             const camposSteppers = [
                 { input: dom.odEsf, nombre: 'od_esf', min: -30, max: 30 },
                 { input: dom.odCil, nombre: 'od_cil', min: -15, max: 15 },
@@ -1771,30 +1882,26 @@
                 { input: dom.odAdd, nombre: 'od_add', min: 0, max: 5 },
                 { input: dom.oiEsf, nombre: 'oi_esf', min: -30, max: 30 },
                 { input: dom.oiCil, nombre: 'oi_cil', min: -15, max: 15 },
-                { input: dom.oiEje, nombre: 'oi_eje', min: 0, max: 180 },
-                { input: dom.oiAdd, nombre: 'oi_add', min: 0, max: 5 },
-                { input: dom.dip, nombre: 'dip', min: -Infinity, max: Infinity },
-                { input: dom.altura, nombre: 'altura', min: -Infinity, max: Infinity }
+                { input: dom.oiEje, nombre: 'oi_eje', min: 0, max: 180 }
             ];
 
+            // Campos de fórmula por ojo; la adición (od_add) es del trabajo, no del ojo
             const camposOjo = {
-                od: [dom.odEsf, dom.odCil, dom.odEje, dom.odAdd],
-                oi: [dom.oiEsf, dom.oiCil, dom.oiEje, dom.oiAdd]
+                od: [dom.odEsf, dom.odCil, dom.odEje],
+                oi: [dom.oiEsf, dom.oiCil, dom.oiEje]
             };
 
             const secciones = {
                 od: $('sOjoOd'),
                 oi: $('sOjoOi'),
-                medidas: $('sMedidas'),
                 cristal: $('sCristal'),
                 tratamiento: $('sTratamiento'),
-                acabado: $('sAcabado')
+                nota: $('sNota')
             };
 
             const gruposOpcion = {
                 cristal: dom.grupoCristal,
-                tratamiento: dom.grupoTratamiento,
-                acabado: dom.grupoAcabado
+                tratamiento: dom.grupoTratamiento
             };
 
             /* ============================================================
@@ -1869,10 +1976,6 @@
                     return isNaN(num) ? '—' : num + '°';
                 },
 
-                formatearMedida(valor) {
-                    return utils.esNumero(valor) ? String(valor).trim() : '—';
-                },
-
                 fechaHoyISO() {
                     const hoy = new Date();
                     const y = hoy.getFullYear();
@@ -1881,14 +1984,29 @@
                     return `${y}-${m}-${d}`;
                 },
 
-                fechaParaArchivo() {
-                    return utils.fechaHoyISO();
+                fechaValida(iso) {
+                    const txt = String(iso ?? '');
+                    if (!/^\d{4}-\d{2}-\d{2}$/.test(txt)) return false;
+                    return !isNaN(new Date(`${txt}T00:00:00`).getTime());
+                },
+
+                fechaParaArchivo(fecha) {
+                    return utils.fechaValida(fecha) ? String(fecha) : utils.fechaHoyISO();
                 },
 
                 fechaVisible(iso) {
                     if (!iso) return '—';
                     const [y, m, d] = String(iso).split('-');
                     return `${d}/${m}/${y}`;
+                },
+
+                // Fecha + versión del pedido: única fuente para la fila meta (XLSX) y el subtítulo (PNG)
+                metaFechaVersion(carpeta) {
+                    return `Fecha: ${utils.fechaVisible(utils.fechaParaArchivo(carpeta.fecha))} · Versión v${carpeta.version}`;
+                },
+
+                textoMeta(carpeta) {
+                    return `Pedido: ${carpeta.nombre} · ${utils.metaFechaVersion(carpeta)}`;
                 },
 
                 // Para búsquedas: minúsculas y sin tildes
@@ -1924,6 +2042,7 @@
 
             /* ============================================================
              * 5. PERSISTENCIA (localStorage) — formato v2 con carpetas
+             *    y copias de seguridad por versión del pedido
              * ============================================================ */
             function carpetaActivaObj() {
                 return state.carpetas.find(c => c.id === state.carpetaActiva) || null;
@@ -1942,14 +2061,64 @@
                 }
             }
 
+            function leerHistorial() {
+                try {
+                    const raw = window.localStorage.getItem(HISTORIAL_KEY);
+                    const data = raw ? JSON.parse(raw) : null;
+                    return data && typeof data === 'object' ? data : {};
+                } catch (e) {
+                    return {};
+                }
+            }
+
+            function escribirHistorial(h) {
+                try {
+                    window.localStorage.setItem(HISTORIAL_KEY, JSON.stringify(h));
+                    return true;
+                } catch (e) {
+                    return false;
+                }
+            }
+
+            // Copia de seguridad de la versión actual del pedido (últimas MAX_COPIAS)
+            function resguardarVersion(carpeta) {
+                const hist = leerHistorial();
+                const lista = Array.isArray(hist[carpeta.id]) ? hist[carpeta.id] : [];
+                lista.push({
+                    v: carpeta.version,
+                    fecha: new Date().toISOString(),
+                    nombre: carpeta.nombre,
+                    trabajos: JSON.parse(JSON.stringify(carpeta.trabajos))
+                });
+                while (lista.length > MAX_COPIAS) lista.shift();
+                hist[carpeta.id] = lista;
+                if (!escribirHistorial(hist)) {
+                    // Sin espacio: recorta copias antiguas y reintenta conservando las últimas
+                    hist[carpeta.id] = lista.slice(-5);
+                    if (!escribirHistorial(hist)) {
+                        hist[carpeta.id] = lista.slice(-1);
+                        if (!escribirHistorial(hist)) {
+                            utils.mostrarToast('No se pudo guardar la copia de seguridad', 'warn');
+                        }
+                    }
+                }
+            }
+
+            // Única vía legal para modificar un pedido: sube la versión, aplica, persiste y copia
+            function mutarPedido(carpeta, aplicar) {
+                aplicar();
+                carpeta.version = (carpeta.version || 1) + 1;
+                persistir();
+                resguardarVersion(carpeta);
+            }
+
             // Sanea un ojo guardado; migra los registros antiguos con plano:true
             function ojoSeguro(o) {
-                const ojo = { esf: '', cil: '', eje: '', add: '' };
+                const ojo = { esf: '', cil: '', eje: '' };
                 if (o && typeof o === 'object') {
                     ojo.esf = String(o.esf ?? '');
                     ojo.cil = String(o.cil ?? '');
                     ojo.eje = String(o.eje ?? '');
-                    ojo.add = String(o.add ?? '');
                     if (o.plano === true && ojo.esf === '' && ojo.cil === '') {
                         ojo.esf = '0.00';
                         ojo.cil = '0.00';
@@ -1959,24 +2128,29 @@
             }
 
             function trabajoSeguro(p) {
+                // add migra desde el modelo antiguo por-ojo: preferir OD, luego OI
+                const addViejo = String((p.od && p.od.add) || (p.oi && p.oi.add) || '');
                 return {
-                    cliente: String(p.cliente ?? ''),
                     ot: String(p.ot ?? ''),
                     od: ojoSeguro(p.od),
                     oi: ojoSeguro(p.oi),
-                    dip: String(p.dip ?? ''),
-                    altura: String(p.altura ?? ''),
+                    add: String(p.add ?? addViejo),
                     cristal: String(p.cristal ?? ''),
                     tratamiento: String(p.tratamiento ?? ''),
-                    acabado: String(p.acabado ?? '')
+                    nota: String(p.nota ?? '').slice(0, 140).trim()
                 };
             }
 
             function carpetaSegura(c) {
+                const creada = String(c.creada ?? utils.fechaHoyISO());
                 return {
                     id: String(c.id ?? utils.nuevaId()),
                     nombre: String(c.nombre ?? 'Pedido'),
-                    creada: String(c.creada ?? utils.fechaHoyISO()),
+                    creada,
+                    // Migración: carpetas antiguas sin fecha propia heredan la de creación
+                    fecha: utils.fechaValida(c.fecha) ? String(c.fecha)
+                        : (utils.fechaValida(creada) ? creada : utils.fechaHoyISO()),
+                    version: Math.max(1, parseInt(c.version, 10) || 1),
                     trabajos: Array.isArray(c.trabajos)
                         ? c.trabajos.filter(t => t && typeof t === 'object').map(trabajoSeguro)
                         : []
@@ -2000,12 +2174,12 @@
                             .filter(p => p && typeof p === 'object')
                             .map(trabajoSeguro);
                         if (trabajos.length === 0) return [];
-                        return [{
+                        return [carpetaSegura({
                             id: utils.nuevaId(),
                             nombre: 'Pedido inicial',
                             creada: utils.fechaHoyISO(),
                             trabajos
-                        }];
+                        })];
                     }
                     return [];
                 } catch (e) {
@@ -2073,26 +2247,23 @@
              * 7. LECTURA / ESCRITURA DEL FORMULARIO
              * ============================================================ */
             function leerOjo(ojo) {
-                const [esf, cil, eje, add] = camposOjo[ojo];
+                const [esf, cil, eje] = camposOjo[ojo];
                 return {
                     esf: esf.value.trim(),
                     cil: cil.value.trim(),
-                    eje: eje.value.trim(),
-                    add: add.value.trim()
+                    eje: eje.value.trim()
                 };
             }
 
             function leerFormulario() {
                 return {
-                    cliente: dom.cliente.value.trim(),
                     ot: dom.ot.value.trim(),
                     od: leerOjo('od'),
                     oi: leerOjo('oi'),
-                    dip: dom.dip.value.trim(),
-                    altura: dom.altura.value.trim(),
+                    add: dom.odAdd.value.trim(),
                     cristal: dom.grupoCristal.dataset.valor || '',
                     tratamiento: dom.grupoTratamiento.dataset.valor || '',
-                    acabado: dom.grupoAcabado.dataset.valor || ''
+                    nota: dom.nota.value.trim()
                 };
             }
 
@@ -2101,8 +2272,7 @@
                 return {
                     esf: utils.formatearDiopter(ojo.esf),
                     cil: utils.formatearDiopter(ojo.cil),
-                    eje: utils.formatearEje(ojo.eje),
-                    add: utils.formatearDiopter(ojo.add)
+                    eje: utils.formatearEje(ojo.eje)
                 };
             }
 
@@ -2114,9 +2284,18 @@
                 });
             }
 
+            function actualizarContadorNota() {
+                const restantes = NOTA_MAX - dom.nota.value.length;
+                dom.notaContador.textContent = restantes === NOTA_MAX
+                    ? `${NOTA_MAX} caracteres disponibles`
+                    : `${restantes} ${restantes === 1 ? 'carácter' : 'caracteres'} disponible${restantes === 1 ? '' : 's'}`;
+            }
+
             function limpiarFormulario() {
-                [dom.cliente, dom.ot, dom.dip, dom.altura,
+                [dom.ot, dom.odAdd,
                  ...camposOjo.od, ...camposOjo.oi].forEach(el => { el.value = ''; });
+                dom.nota.value = '';
+                actualizarContadorNota();
                 Object.values(gruposOpcion).forEach((grupo) => {
                     grupo.dataset.valor = '';
                     grupo.classList.remove('invalid');
@@ -2126,24 +2305,21 @@
             }
 
             function cargarEnFormulario(p) {
-                dom.cliente.value = p.cliente;
                 dom.ot.value = p.ot;
                 dom.odEsf.value = p.od.esf;
                 dom.odCil.value = p.od.cil;
                 dom.odEje.value = p.od.eje;
-                dom.odAdd.value = p.od.add;
                 dom.oiEsf.value = p.oi.esf;
                 dom.oiCil.value = p.oi.cil;
                 dom.oiEje.value = p.oi.eje;
-                dom.oiAdd.value = p.oi.add;
-                dom.dip.value = p.dip;
-                dom.altura.value = p.altura;
-                [...camposOjo.od, ...camposOjo.oi].forEach((input) => {
+                dom.odAdd.value = p.add; // adición compartida: vive en el campo del OD
+                [...camposOjo.od, ...camposOjo.oi, dom.odAdd].forEach((input) => {
                     if (CAMPOS_SIGNO.includes(input.id)) utils.normalizarSigno(input);
                 });
                 dom.grupoCristal.dataset.valor = p.cristal;
                 dom.grupoTratamiento.dataset.valor = p.tratamiento;
-                dom.grupoAcabado.dataset.valor = p.acabado;
+                dom.nota.value = p.nota;
+                actualizarContadorNota();
                 Object.values(gruposOpcion).forEach(pintarOpciones);
                 limpiarErrores();
             }
@@ -2154,7 +2330,7 @@
             // Validez "en vivo" (sin invalidar campos): controla qué secciones
             // quedan habilitadas. La validación estricta es al guardar.
             function datosOK() {
-                return dom.cliente.value.trim() !== '' && dom.ot.value.trim() !== '';
+                return dom.ot.value.trim() !== '';
             }
 
             function ojoOK(ojo) {
@@ -2168,11 +2344,10 @@
                 secciones.od.hidden = !datosOK();
                 secciones.oi.hidden = !(datosOK() && ojoOK('od'));
                 const ojosOK = ojoOK('od') && ojoOK('oi');
-                secciones.medidas.hidden = !(datosOK() && ojosOK);
-                const dipOK = utils.esNumero(dom.dip.value.trim());
-                secciones.cristal.hidden = !(datosOK() && ojosOK && dipOK);
+                secciones.cristal.hidden = !(datosOK() && ojosOK);
                 secciones.tratamiento.hidden = secciones.cristal.hidden || dom.grupoCristal.dataset.valor === '';
-                secciones.acabado.hidden = secciones.tratamiento.hidden || dom.grupoTratamiento.dataset.valor === '';
+                // La nota es el paso final y siempre es opcional: solo se oculta tras el tratamiento
+                secciones.nota.hidden = secciones.tratamiento.hidden || dom.grupoTratamiento.dataset.valor === '';
             }
 
             /* ============================================================
@@ -2212,8 +2387,7 @@
                 let valido = true;
                 let primeroInvalido = null;
 
-                [[dom.cliente, !dom.cliente.value.trim()],
-                 [dom.ot, !dom.ot.value.trim()]].forEach(([input, vacio]) => {
+                [[dom.ot, !dom.ot.value.trim()]].forEach(([input, vacio]) => {
                     if (vacio) {
                         invalidar(input);
                         valido = false;
@@ -2228,17 +2402,11 @@
                     }
                 });
 
-                // DIP y altura son libres de rango: solo se valida que sean numéricos
-                if (!utils.esNumero(dom.dip.value.trim())) {
-                    invalidar(dom.dip);
+                // Adición compartida: opcional, pero si se llena debe respetar su rango (0–5)
+                if (!utils.numeroValido(dom.odAdd.value.trim(), RANGOS.od_add)) {
+                    invalidar(dom.odAdd);
                     valido = false;
-                    primeroInvalido ||= dom.dip;
-                }
-                const altValor = dom.altura.value.trim();
-                if (altValor !== '' && !utils.esNumero(altValor)) {
-                    invalidar(dom.altura);
-                    valido = false;
-                    primeroInvalido ||= dom.altura;
+                    primeroInvalido ||= dom.odAdd;
                 }
 
                 Object.values(gruposOpcion).forEach((grupo) => {
@@ -2264,7 +2432,7 @@
                             <span class="carp-icon">${utils.icono('carpeta')}</span>
                             <div class="carp-titulos">
                                 <h3 class="carp-nombre">${utils.esc(c.nombre)}</h3>
-                                <p class="carp-meta">Creada ${utils.fechaVisible(c.creada)} · ${n} ${n === 1 ? 'trabajo' : 'trabajos'}</p>
+                                <p class="carp-meta">Creada ${utils.fechaVisible(c.creada)} · v${c.version} · ${n} ${n === 1 ? 'trabajo' : 'trabajos'}</p>
                             </div>
                             <div class="rec-actions">
                                 <button type="button" class="icon-btn" data-accion="renombrar"
@@ -2325,7 +2493,7 @@
                 return `
                     <div class="rec-eye">
                         <span class="eye-tag ${ojo}">${ojo.toUpperCase()}</span>
-                        <span>${utils.esc(v.esf)} / ${utils.esc(v.cil)} × ${utils.esc(v.eje)} / ${utils.esc(v.add)}</span>
+                        <span>${utils.esc(v.esf)} / ${utils.esc(v.cil)} × ${utils.esc(v.eje)}</span>
                     </div>`;
             }
 
@@ -2342,14 +2510,12 @@
                 dom.listado.innerHTML = trabajos.map((p, i) => {
                     const cristal = utils.textoEtiqueta(CRISTALES, p.cristal);
                     const tratamiento = utils.textoEtiqueta(TRATAMIENTOS, p.tratamiento);
-                    const acabado = utils.textoEtiqueta(ACABADOS, p.acabado);
                     return `
                         <article class="rec-card">
                             <div class="rec-head">
                                 <div class="rec-titulos">
                                     <span class="rec-ot">OT ${utils.esc(p.ot)}</span>
                                     ${state.editando === i ? '<span class="rec-editando">editando</span>' : ''}
-                                    <h3 class="rec-nombre">${utils.esc(p.cliente)}</h3>
                                 </div>
                                 <div class="rec-actions">
                                     <button type="button" class="icon-btn" data-accion="editar" data-index="${i}"
@@ -2360,20 +2526,24 @@
                             </div>
                             ${filaOjo('od', p)}
                             ${filaOjo('oi', p)}
-                            <p class="rec-medidas">DIP ${utils.esc(utils.formatearMedida(p.dip))} mm · Altura ${utils.esc(utils.formatearMedida(p.altura))} ${p.altura ? 'mm' : ''}</p>
+                            <p class="rec-add">Add ${utils.esc(utils.formatearDiopter(p.add))} · para ambos ojos</p>
                             <div class="rec-chips">
                                 <span class="chip">${utils.esc(cristal)}</span>
                                 <span class="chip">${utils.esc(tratamiento)}</span>
-                                <span class="chip">${utils.esc(acabado)}</span>
                             </div>
+                            ${p.nota ? `<p class="rec-nota">${utils.esc(p.nota)}</p>` : ''}
                         </article>
                     `;
                 }).join('');
             }
 
-            // Un solo helper para XLSX y PNG: cambia solo la extensión (mismo base Pedido_<carpeta>_<fecha>)
+            // Un solo helper para XLSX y PNG: mismo base Pedido_<carpeta>_<fecha del pedido>_v<n>
             function nombreArchivoExport(carpeta, ext = 'xlsx') {
-                return `Pedido_${utils.sanitizarNombreArchivo(carpeta.nombre)}_${utils.fechaParaArchivo()}.${ext}`;
+                return `Pedido_${utils.sanitizarNombreArchivo(carpeta.nombre)}_${utils.fechaParaArchivo(carpeta.fecha)}_v${carpeta.version}.${ext}`;
+            }
+
+            function resumenBloqueado() {
+                return Date.now() < state.bloqueoHasta;
             }
 
             function renderizarResumen() {
@@ -2382,12 +2552,14 @@
                 dom.resumenCarpeta.textContent = carpeta ? carpeta.nombre : '—';
                 dom.resumenCantidad.textContent =
                     `${trabajos.length} ${trabajos.length === 1 ? 'trabajo' : 'trabajos'}`;
+                dom.resumenVersion.textContent = carpeta ? `v${carpeta.version}` : '—';
+                dom.resumenFecha.textContent = carpeta ? utils.fechaVisible(carpeta.fecha) : '—';
                 const filas = trabajos.length * 2;
                 dom.resumenFilas.textContent =
                     `${filas} ${filas === 1 ? 'fila' : 'filas'}`;
                 dom.resumenArchivo.textContent = carpeta ? nombreArchivoExport(carpeta) : '—';
-                dom.btnExport.disabled = trabajos.length === 0;
-                dom.btnImagen.disabled = trabajos.length === 0 || state.generandoImagen;
+                dom.btnExport.disabled = trabajos.length === 0 || resumenBloqueado();
+                dom.btnImagen.disabled = trabajos.length === 0 || state.generandoImagen || resumenBloqueado();
                 dom.btnClear.disabled = trabajos.length === 0;
             }
 
@@ -2439,10 +2611,13 @@
                     id: utils.nuevaId(),
                     nombre,
                     creada: utils.fechaHoyISO(),
+                    fecha: utils.fechaHoyISO(),
+                    version: 1,
                     trabajos: []
                 };
                 state.carpetas.push(carpeta);
                 persistir();
+                resguardarVersion(carpeta); // copia v1: el pedido nunca arranca sin respaldo
                 dom.nuevaCarpeta.value = '';
                 abrirCarpeta(carpeta.id);
                 utils.mostrarToast('Carpeta creada', 'success');
@@ -2457,9 +2632,8 @@
                     input?.closest('.field')?.classList.add('invalid');
                     return;
                 }
-                carpeta.nombre = nombre;
                 state.renombrando = null;
-                persistir();
+                mutarPedido(carpeta, () => { carpeta.nombre = nombre; });
                 actualizarUI();
                 utils.mostrarToast('Carpeta renombrada', 'success');
             }
@@ -2473,6 +2647,7 @@
                     mensaje: `Se eliminará "${carpeta.nombre}"${n > 0 ? ` y sus ${n} ${n === 1 ? 'trabajo' : 'trabajos'}` : ''}. Esta acción no se puede deshacer.`,
                     textoConfirmar: 'Eliminar carpeta',
                     onConfirmar: () => {
+                        resguardarVersion(carpeta); // última copia antes de borrar: nada se pierde
                         const idx = state.carpetas.findIndex(c => c.id === id);
                         if (idx >= 0) state.carpetas.splice(idx, 1);
                         if (state.carpetaActiva === id) state.carpetaActiva = null;
@@ -2494,8 +2669,7 @@
                 if (state.editando === null) {
                     const otNuevo = datos.ot.toLowerCase();
                     const duplicada = carpeta.trabajos.some(p => p.ot.toLowerCase() === otNuevo);
-                    carpeta.trabajos.push(datos);
-                    persistir();
+                    mutarPedido(carpeta, () => { carpeta.trabajos.push(datos); });
                     limpiarFormulario();
                     actualizarProgreso();
                     if (duplicada) {
@@ -2503,12 +2677,11 @@
                     } else {
                         utils.mostrarToast('Trabajo agregado', 'success');
                     }
-                    dom.cliente.focus();
+                    dom.ot.focus();
                 } else {
                     const idx = state.editando;
                     if (idx >= 0 && idx < carpeta.trabajos.length) {
-                        carpeta.trabajos[idx] = datos;
-                        persistir();
+                        mutarPedido(carpeta, () => { carpeta.trabajos[idx] = datos; });
                     }
                     salirDeEdicion();
                     cambiarVista('pedidos');
@@ -2525,7 +2698,7 @@
                 cargarEnFormulario(p);
                 actualizarProgreso();
                 dom.editBanner.hidden = false;
-                dom.editCliente.textContent = `OT ${p.ot} · ${p.cliente}`;
+                dom.editOt.textContent = `OT ${p.ot}`;
                 dom.btnGuardar.innerHTML = utils.icono('guardar') + ' Actualizar trabajo';
                 dom.btnCancelarEdicion.hidden = false;
                 cambiarVista('trabajo');
@@ -2560,18 +2733,20 @@
                 if (!p) return;
                 abrirConfirmacion({
                     titulo: '¿Eliminar trabajo?',
-                    mensaje: `Se eliminará el trabajo de ${p.cliente || 'este cliente'} (OT ${p.ot}).`,
+                    mensaje: `Se eliminará el trabajo de la OT ${p.ot}.`,
                     textoConfirmar: 'Eliminar',
                     onConfirmar: () => {
-                        trabajos.splice(index, 1);
-                        if (state.editando !== null) {
-                            if (state.editando === index) {
-                                salirDeEdicion();
-                            } else if (state.editando > index) {
-                                state.editando -= 1;
+                        const carpeta = carpetaActivaObj();
+                        mutarPedido(carpeta, () => {
+                            trabajos.splice(index, 1);
+                            if (state.editando !== null) {
+                                if (state.editando === index) {
+                                    salirDeEdicion();
+                                } else if (state.editando > index) {
+                                    state.editando -= 1;
+                                }
                             }
-                        }
-                        persistir();
+                        });
                         actualizarUI();
                         utils.mostrarToast('Trabajo eliminado');
                     }
@@ -2589,9 +2764,10 @@
                     mensaje: `Se eliminarán ${carpeta.trabajos.length} trabajos de "${carpeta.nombre}". La carpeta se conservará.`,
                     textoConfirmar: 'Vaciar carpeta',
                     onConfirmar: () => {
-                        carpeta.trabajos = [];
-                        salirDeEdicion();
-                        persistir();
+                        mutarPedido(carpeta, () => {
+                            carpeta.trabajos = [];
+                            salirDeEdicion();
+                        });
                         actualizarUI();
                         utils.mostrarToast('Trabajos eliminados de la carpeta');
                     }
@@ -2599,7 +2775,7 @@
             }
 
             /* ============================================================
-             * 13. CONFIRMACIÓN (bottom sheet)
+             * 13. BOTTOM SHEETS (confirmación y fecha del pedido)
              * ============================================================ */
             function abrirConfirmacion({ titulo, mensaje, textoConfirmar = 'Eliminar', onConfirmar }) {
                 dom.sheetTitle.textContent = titulo;
@@ -2617,42 +2793,134 @@
                 state.alConfirmar = null;
             }
 
+            // ---- Hoja de fecha del pedido ----
+            function abrirHojaFecha() {
+                const carpeta = carpetaActivaObj();
+                if (!carpeta) return;
+                const hoy = utils.fechaHoyISO();
+                const esHoy = utils.fechaParaArchivo(carpeta.fecha) === hoy;
+                dom.grupoFecha.dataset.valor = esHoy ? 'hoy' : 'custom';
+                dom.fieldInputFecha.hidden = esHoy;
+                dom.inputFecha.value = utils.fechaParaArchivo(carpeta.fecha);
+                dom.fieldInputFecha.classList.remove('invalid');
+                dom.inputFecha.removeAttribute('aria-invalid');
+                pintarOpciones(dom.grupoFecha);
+                dom.hojaFecha.classList.add('open');
+                dom.hojaFecha.setAttribute('aria-hidden', 'false');
+                dom.hojaFechaGuardar.focus();
+            }
+
+            function cerrarHojaFecha() {
+                dom.hojaFecha.classList.remove('open');
+                dom.hojaFecha.setAttribute('aria-hidden', 'true');
+            }
+
+            function elegirOpcionFecha(valor) {
+                dom.grupoFecha.dataset.valor = valor;
+                dom.fieldInputFecha.hidden = valor !== 'custom';
+                dom.fieldInputFecha.classList.remove('invalid');
+                dom.inputFecha.removeAttribute('aria-invalid');
+                pintarOpciones(dom.grupoFecha);
+            }
+
+            function guardarFechaCarpeta() {
+                const carpeta = carpetaActivaObj();
+                if (!carpeta) return;
+                const esCustom = dom.grupoFecha.dataset.valor === 'custom';
+                const iso = esCustom ? dom.inputFecha.value : utils.fechaHoyISO();
+                if (esCustom && !utils.fechaValida(iso)) {
+                    invalidar(dom.inputFecha);
+                    dom.inputFecha.focus();
+                    return;
+                }
+                cerrarHojaFecha();
+                if (iso === utils.fechaParaArchivo(carpeta.fecha)) {
+                    utils.mostrarToast('La fecha del pedido ya es esa');
+                    return;
+                }
+                mutarPedido(carpeta, () => { carpeta.fecha = iso; });
+                actualizarUI();
+                utils.mostrarToast('Fecha actualizada', 'success');
+            }
+
             /* ============================================================
              * 14. EXPORTAR (XLSX E IMAGEN PNG, solo la carpeta activa)
              * ============================================================ */
-            const CABECERAS = ['OT', 'Cliente', 'Ojo', 'Esf', 'Cil', 'Eje', 'Add', 'DIP', 'Altura', 'Cristal', 'Tratamiento', 'Acabado'];
-            // Columnas con datos del trabajo (se fusionan OD/OI): OT, Cliente, DIP, Altura, Cristal, Tratamiento, Acabado
-            const COLUMNAS_MERGED = [0, 1, 7, 8, 9, 10, 11];
+            function mostrarCarga() {
+                dom.pantallaCarga.classList.add('open');
+                dom.pantallaCarga.setAttribute('aria-hidden', 'false');
+            }
+
+            function ocultarCarga() {
+                dom.pantallaCarga.classList.remove('open');
+                dom.pantallaCarga.setAttribute('aria-hidden', 'true');
+            }
+
+            // Un clic en "Generar": pantalla de carga + bloqueo mínimo BLOQUEO_MS (anti doble clic).
+            // Si la generación tarda más de 10 s, el desbloqueo espera a que termine.
+            function generarConCarga(generacion) {
+                if (Date.now() < state.bloqueoHasta) return;
+                const t0 = Date.now();
+                state.bloqueoHasta = t0 + BLOQUEO_MS;
+                dom.btnExport.disabled = true;
+                dom.btnImagen.disabled = true;
+                mostrarCarga();
+                setTimeout(() => {
+                    // Dejar pintar la pantalla de carga antes del trabajo pesado (XLSX es síncrono)
+                    Promise.resolve()
+                        .then(generacion)
+                        .catch((error) => {
+                            console.error('Error al generar el archivo:', error);
+                            utils.mostrarToast('Error al generar el archivo', 'error');
+                        })
+                        .finally(() => {
+                            const esperaCarga = Math.max(0, CARGA_MIN_MS - (Date.now() - t0));
+                            clearTimeout(state.timerCarga);
+                            state.timerCarga = setTimeout(() => {
+                                ocultarCarga();
+                                const resto = Math.max(0, BLOQUEO_MS - (Date.now() - t0));
+                                state.timerCarga = setTimeout(() => {
+                                    state.bloqueoHasta = 0;
+                                    state.timerCarga = null;
+                                    renderizarResumen();
+                                }, resto);
+                            }, esperaCarga);
+                        });
+                }, 50);
+            }
+
+            const CABECERAS = ['OT', 'Ojo', 'Esf', 'Cil', 'Eje', 'Add', 'Cristal', 'Tratamiento', 'Nota'];
+            // Columnas con datos del trabajo (se fusionan OD/OI): OT, Add, Cristal, Tratamiento y Nota
+            const COLUMNAS_MERGED = [0, 5, 6, 7, 8];
 
             // Única fuente de anchos: alimenta ws['!cols'] del XLSX y el <colgroup> de la imagen
             const ANCHOS_COL = [
-                { wch: 10 }, { wch: 24 }, { wch: 6 },
+                { wch: 10 }, { wch: 6 },
                 { wch: 9 }, { wch: 9 }, { wch: 7 }, { wch: 9 },
-                { wch: 7 }, { wch: 8 }, { wch: 12 }, { wch: 26 }, { wch: 11 }
+                { wch: 12 }, { wch: 26 }, { wch: 24 }
             ];
 
             function filaOjoExport(ojo) {
                 const v = valoresFormateados(ojo);
-                return [v.esf, v.cil, v.eje, v.add];
+                return [v.esf, v.cil, v.eje];
             }
 
-            function construirHojas(trabajos) {
-                const aoa = [CABECERAS.slice()];
-                const merges = [];
+            // Fila 0: meta (fecha + versión) · Fila 1: cabeceras · desde la 2: trío OD/OI/separador
+            function construirHojas(trabajos, carpeta) {
+                const aoa = [[utils.textoMeta(carpeta)], CABECERAS.slice()];
+                const merges = [{ s: { r: 0, c: 0 }, e: { r: 0, c: CABECERAS.length - 1 } }];
 
                 trabajos.forEach((p, i) => {
-                    const base = 1 + i * 3; // OD, OI y fila separadora por trabajo
-                    const trabajo = [
-                        p.ot,
-                        p.cliente,
-                        utils.formatearMedida(p.dip),
-                        utils.formatearMedida(p.altura),
+                    const base = 2 + i * 3; // OD, OI y fila separadora por trabajo
+                    // Datos del trabajo (no del ojo): Add, Cristal, Tratamiento y Nota viven en la celda OD fusionada
+                    const compartidas = [
+                        utils.formatearDiopter(p.add),
                         utils.textoEtiqueta(CRISTALES, p.cristal),
                         utils.textoEtiqueta(TRATAMIENTOS, p.tratamiento),
-                        utils.textoEtiqueta(ACABADOS, p.acabado)
+                        p.nota || '—'
                     ];
-                    aoa.push([trabajo[0], trabajo[1], 'OD', ...filaOjoExport(p.od), trabajo[2], trabajo[3], trabajo[4], trabajo[5], trabajo[6]]);
-                    aoa.push([trabajo[0], trabajo[1], 'OI', ...filaOjoExport(p.oi), trabajo[2], trabajo[3], trabajo[4], trabajo[5], trabajo[6]]);
+                    aoa.push([p.ot, 'OD', ...filaOjoExport(p.od), ...compartidas]);
+                    aoa.push([p.ot, 'OI', ...filaOjoExport(p.oi), '', '', '', '']); // vacías bajo los merges
                     aoa.push([]); // separador fino entre trabajos
                     COLUMNAS_MERGED.forEach((c) => {
                         merges.push({ s: { r: base, c }, e: { r: base + 1, c } });
@@ -2662,11 +2930,11 @@
                 return { aoa, merges };
             }
 
-            // Alturas de fila: las separadoras (r múltiplo de 3, tras cabecera) quedan finas
+            // Alturas de fila: las separadoras (r = 4, 7, 10...) quedan finas
             function construirFilas(total) {
                 const filas = [];
                 for (let r = 0; r < total; r++) {
-                    filas.push(r > 0 && r % 3 === 0 ? { hpx: 6 } : {});
+                    filas.push(r > 1 && (r - 1) % 3 === 0 ? { hpx: 6 } : {});
                 }
                 return filas;
             }
@@ -2684,13 +2952,19 @@
             };
 
             const BORDE_XLSX = { style: 'thin', color: { rgb: COLORES_XLSX.borde } };
-            const COLUMNAS_IZQ = new Set([0, 1, 9, 10, 11]);
+            const COLUMNAS_IZQ = new Set([0, 6, 7, 8]);
+            // Última columna = Nota: texto largo que debe ajustarse dentro de la celda
+            const COL_NOTA = CABECERAS.length - 1;
 
             function estiloCelda(relleno, opciones) {
                 return {
                     fill: { patternType: 'solid', fgColor: { rgb: relleno } },
                     font: { sz: 11, bold: !!opciones.negrita, color: { rgb: COLORES_XLSX.texto } },
-                    alignment: { horizontal: opciones.alineacion, vertical: 'center' },
+                    alignment: {
+                        horizontal: opciones.alineacion,
+                        vertical: opciones.ajustar ? 'top' : 'center',
+                        wrapText: !!opciones.ajustar
+                    },
                     border: { top: BORDE_XLSX, bottom: BORDE_XLSX, left: BORDE_XLSX, right: BORDE_XLSX }
                 };
             }
@@ -2699,25 +2973,30 @@
                 if (!ws['!ref']) return;
                 const rango = XLSX.utils.decode_range(ws['!ref']);
                 for (let r = rango.s.r; r <= rango.e.r; r++) {
-                    if (r > 0 && r % 3 === 0) continue; // filas separadoras sin estilo
-                    const esCabecera = r === 0;
-                    const esFilaOi = !esCabecera && r % 3 === 2;
+                    const esMeta = r === 0;
+                    const esCabecera = r === 1;
+                    const pos = (r - 2) % 3;
+                    if (!esMeta && !esCabecera && pos === 2) continue; // separadoras sin estilo
+                    const esFilaOi = pos === 1;
                     for (let c = rango.s.c; c <= Math.min(rango.e.c, CABECERAS.length - 1); c++) {
                         const celda = ws[XLSX.utils.encode_cell({ r, c })];
                         if (!celda) continue;
                         let relleno;
-                        if (esCabecera) {
+                        if (esMeta) {
+                            relleno = COLORES_XLSX.trabajo;
+                        } else if (esCabecera) {
                             relleno = COLORES_XLSX.cabecera;
-                        } else if (c >= 3 && c <= 6) {
+                        } else if (c >= 2 && c <= 5) {
                             relleno = esFilaOi ? COLORES_XLSX.oi : COLORES_XLSX.od;
-                        } else if (c >= 9) {
+                        } else if (c >= 6) {
                             relleno = COLORES_XLSX.opciones;
                         } else {
                             relleno = COLORES_XLSX.trabajo;
                         }
                         celda.s = estiloCelda(relleno, {
-                            negrita: esCabecera,
-                            alineacion: esCabecera || !COLUMNAS_IZQ.has(c) ? 'center' : 'left'
+                            negrita: esMeta || esCabecera,
+                            alineacion: esCabecera || !COLUMNAS_IZQ.has(c) ? 'center' : 'left',
+                            ajustar: c === COL_NOTA && !esCabecera && !esMeta
                         });
                     }
                 }
@@ -2732,7 +3011,7 @@
                 }
 
                 try {
-                    const { aoa, merges } = construirHojas(trabajos);
+                    const { aoa, merges } = construirHojas(trabajos, carpeta);
                     const wb = XLSX.utils.book_new();
                     const ws = XLSX.utils.aoa_to_sheet(aoa);
                     ws['!merges'] = merges;
@@ -2762,33 +3041,34 @@
                 let relleno;
                 if (esCabecera) {
                     relleno = COLORES_XLSX.cabecera;
-                } else if (c >= 3 && c <= 6) {
+                } else if (c >= 2 && c <= 5) {
                     relleno = esFilaOi ? COLORES_XLSX.oi : COLORES_XLSX.od;
-                } else if (c >= 9) {
+                } else if (c >= 6) {
                     relleno = COLORES_XLSX.opciones;
                 } else {
                     relleno = COLORES_XLSX.trabajo;
                 }
-                const alineacion = esCabecera || !COLUMNAS_IZQ.has(c) ? 'center' : 'left';
-                return [
-                    `background:${hexCss(relleno)}`,
-                    `color:${hexCss(COLORES_XLSX.texto)}`,
-                    `border:1px solid ${hexCss(COLORES_XLSX.borde)}`,
-                    'padding:3px 5px',
-                    'font-size:11px',
-                    esCabecera ? 'font-weight:700' : 'font-weight:400',
-                    `text-align:${alineacion}`,
-                    'vertical-align:middle',
-                    'white-space:nowrap'
+        const alineacion = esCabecera || !COLUMNAS_IZQ.has(c) ? 'center' : 'left';
+        const esNota = c === COL_NOTA && !esCabecera;
+        return [
+            `background:${hexCss(relleno)}`,
+            `color:${hexCss(COLORES_XLSX.texto)}`,
+            `border:1px solid ${hexCss(COLORES_XLSX.borde)}`,
+            'padding:3px 5px',
+            'font-size:11px',
+            esCabecera ? 'font-weight:700' : 'font-weight:400',
+            `text-align:${alineacion}`,
+            esNota ? 'vertical-align:top;white-space:normal' : 'vertical-align:middle;white-space:nowrap'
                 ].join(';');
             }
 
-            // Misma matriz (aoa + merges) que va al XLSX, traducida a <table> con rowspan
-            // Los merges del contrato son solo verticales (OD/OI); los horizontales no existen
+            // Misma matriz (aoa + merges) que va al XLSX, traducida a <table> con rowspan.
+            // La fila meta (r=0, merge horizontal) se muestra como subtítulo fuera de la tabla;
+            // los merges del contrato de datos son solo verticales (OD/OI).
             function construirVistaHoja(aoa, merges, carpeta) {
                 const inicio = new Map();
                 const cubierta = new Set();
-                merges.forEach((m) => {
+                merges.filter((m) => m.s.r > 0).forEach((m) => {
                     inicio.set(`${m.s.r},${m.s.c}`, m.e.r - m.s.r + 1);
                     for (let r = m.s.r; r <= m.e.r; r++) {
                         for (let c = m.s.c; c <= m.e.c; c++) {
@@ -2801,12 +3081,13 @@
 
                 let cuerpo = '';
                 aoa.forEach((fila, r) => {
+                    if (r === 0) return; // fila meta: va en el subtítulo de la hoja
                     if (fila.length === 0) {
                         cuerpo += `<tr style="height:6px"><td colspan="${ANCHOS_COL.length}" style="border:0;padding:0;background:#ffffff"></td></tr>`;
                         return;
                     }
-                    const esCabecera = r === 0;
-                    const esFilaOi = !esCabecera && r % 3 === 2;
+                    const esCabecera = r === 1;
+                    const esFilaOi = !esCabecera && (r - 2) % 3 === 1;
                     let celdas = '';
                     for (let c = 0; c < ANCHOS_COL.length; c++) {
                         const clave = `${r},${c}`;
@@ -2824,7 +3105,7 @@
                 cont.className = 'hoja-foto';
                 cont.innerHTML = `
                     <p class="hoja-titulo">${utils.esc(carpeta.nombre)}</p>
-                    <p class="hoja-fecha">${utils.esc(utils.fechaVisible(utils.fechaHoyISO()))}</p>
+                    <p class="hoja-fecha">${utils.esc(utils.metaFechaVersion(carpeta))}</p>
                     <table><colgroup>${colgroup}</colgroup><tbody>${cuerpo}</tbody></table>
                 `;
                 return cont;
@@ -2847,7 +3128,7 @@
                 dom.btnImagen.disabled = true;
                 let cont = null;
                 try {
-                    const { aoa, merges } = construirHojas(trabajos);
+                    const { aoa, merges } = construirHojas(trabajos, carpeta);
                     cont = construirVistaHoja(aoa, merges, carpeta);
                     document.body.appendChild(cont);
                     const lienzo = await window.html2canvas(cont, { scale: 2, backgroundColor: '#ffffff' });
@@ -2859,7 +3140,7 @@
                 } finally {
                     if (cont) cont.remove();
                     state.generandoImagen = false;
-                    dom.btnImagen.disabled = trabajosActivos().length === 0;
+                    renderizarResumen();
                 }
             }
 
@@ -3007,6 +3288,9 @@
                     actualizarProgreso();
                 });
 
+                // Contador vivo de la nota (opcional, maxlength=NOTA_MAX en el HTML)
+                dom.nota.addEventListener('input', actualizarContadorNota);
+
                 dom.btnCancelarEdicion.addEventListener('click', () => {
                     salirDeEdicion();
                     utils.mostrarToast('Edición cancelada');
@@ -3026,8 +3310,8 @@
                     }
                 });
 
-                dom.btnExport.addEventListener('click', exportarXLSX);
-                dom.btnImagen.addEventListener('click', exportarImagen);
+                dom.btnExport.addEventListener('click', () => generarConCarga(exportarXLSX));
+                dom.btnImagen.addEventListener('click', () => generarConCarga(exportarImagen));
                 dom.btnClear.addEventListener('click', solicitarLimpiarTodo);
 
                 // ---- Bottom sheet ----
@@ -3044,9 +3328,25 @@
                 dom.previewCancelar.addEventListener('click', cerrarVistaPrevia);
                 dom.previewGuardar.addEventListener('click', guardarPNG);
 
+                // ---- Hoja de fecha del pedido ----
+                dom.btnFecha.addEventListener('click', abrirHojaFecha);
+                dom.hojaFechaBack.addEventListener('click', cerrarHojaFecha);
+                dom.hojaFechaCancelar.addEventListener('click', cerrarHojaFecha);
+                dom.hojaFechaGuardar.addEventListener('click', guardarFechaCarpeta);
+                dom.hojaFecha.addEventListener('click', (e) => {
+                    const opcion = e.target.closest('.opt-btn');
+                    if (opcion) elegirOpcionFecha(opcion.dataset.opcion);
+                });
+                dom.inputFecha.addEventListener('input', () => {
+                    dom.fieldInputFecha.classList.remove('invalid');
+                    dom.inputFecha.removeAttribute('aria-invalid');
+                });
+
                 document.addEventListener('keydown', (e) => {
                     if (e.key !== 'Escape') return;
-                    if (dom.previewWrap.classList.contains('open')) {
+                    if (dom.hojaFecha.classList.contains('open')) {
+                        cerrarHojaFecha();
+                    } else if (dom.previewWrap.classList.contains('open')) {
                         cerrarVistaPrevia();
                     } else if (dom.sheetWrap.classList.contains('open')) {
                         cerrarConfirmacion();
